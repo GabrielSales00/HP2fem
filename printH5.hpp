@@ -344,16 +344,21 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 	hsize_t dims2[2] = {numElems, 1};
 	hsize_t dims3[2] = {1, numElems};
 	int elemsSize = 2;
+	int elemsDim = 2;
 
 	//corrigir os datasets
 	for (unsigned long int aux = 0; aux < nodesPerElem + 2; aux++) {
 		if (aux + 1 == 1) {
-			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, 2, elemsSize);
+			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, elemsDim, elemsSize);
 			writeDataset(elemDataset, indexVecElem.front(), "long");
 		}
 		else if (aux + 1 > 1 && aux < nodesPerElem + 2) {
-			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, 2, elemsSize);
-			writeDataset(elemDataset, indexVecElem.front(), "long");
+			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, elemsDim, elemsSize);
+			writeDataset(elemDataset, incidences[i-1][0], "long");
+		}
+		else {
+			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, elemsDim, elemsSize);
+			writeDataset(elemDataset, indexVecElemOnes.front(), "long");			
 		}
 	}
 
