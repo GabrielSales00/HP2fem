@@ -1,4 +1,3 @@
-
 #include <string>
 #include <stdlib.h>
 #include "hdf5.h"
@@ -11,6 +10,9 @@ using namespace std;
 //Creates the groups in the file
 
 
+/**
+	Okay
+*/
 hid_t newGroup(hid_t file, string groupLoc) {
 	hid_t group;
 	group = H5Gcreate2(file, (groupLoc).c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -39,7 +41,7 @@ vector <double> * getCoords (unsigned long numNodes) {
 }
 
 
-
+//checar
 vector <unsigned long int> * getIndex (unsigned long numNodes) {
 	unsigned long int index;
 	vector <unsigned long int> indexVec;
@@ -50,14 +52,18 @@ vector <unsigned long int> * getIndex (unsigned long numNodes) {
 	return indexVec;
 }
 
-
-hid_t newDataset(hid_t file, string target, string type, int size) {
+/**
+	Okay
+*/
+hid_t newDataset(hid_t file, string target, string type, hsize_t *dimsf, int RANK, int dimsSize) {
 	try {
 		hid_t dataspace, datatype, dataset;
 		herr_t status;
-		hsize_t dimsf[1];
-		int RANK = 1;
-		dimsf[0] = size;
+		// int RANK = 1;
+		// dimsf[0] = size;
+		for (int aux = 0; aux < dimsSize; aux++) {
+			dimsf[aux] = size[aux];
+		}
 
 		dataspace = H5Screate_simple(RANK, dimsf, NULL);
 		//creates a dataspace (dataset shape)
@@ -83,6 +89,10 @@ hid_t newDataset(hid_t file, string target, string type, int size) {
 	}
 }
 
+
+/**
+	Okay
+*/
 void writeDataset(hid_t dataset, vector array, string type) {
 	try {
 		herr_t status;
@@ -105,6 +115,10 @@ void writeDataset(hid_t dataset, vector array, string type) {
 
 }
 
+
+/**
+	Okay
+*/
 //Creates the basic file structure
 hid_t newFile(string fileName) {
 	hid_t file;
@@ -114,7 +128,9 @@ hid_t newFile(string fileName) {
 	return file;
 }
 
-
+/**
+	Okay
+*/
 void newAttribute(hid_t target, string attrName, string attrValue, int size) {
 	hid_t attribute, aidType, attrType; //attribute, dataspace identifire for the attribute, attrtype;
 	herr_t ret; //return attribute
@@ -136,7 +152,9 @@ void newAttribute(hid_t target, string attrName, string attrValue, int size) {
 } 
 
 
-
+/**
+	Okay
+*/
 void close(hid_t target, string type) {
 	herr_t status;
 	if (type == "dataspace") {
@@ -179,7 +197,11 @@ void close(hid_t target, string type) {
 //GlobalModel.Coords.GetNodeCoordinates(Node); - 3 vetores para (x, y, z) de cada nó
 
 void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsigned long int numSteps) {
-	
+
+	int defaultDimsf[1] = {numNodes};
+	int defaultSize = 1;
+	int rank = 1;
+
 	vector <double> coordsVec = getCoords(numNodes);
 	vector <unsigned long> indexVec = getIndex(numNodes);
 
@@ -214,7 +236,9 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 
 
 
-	//Decidir como descobrir a quantidade de componentes
+	/**
+		Okay
+	*/
 	for (aux = 0; aux < numGroups; aux++) {
 		for (aux1 = 0; aux1 < numAttr; aux1++) {
 			if(aux % 2 == 0 && aux1 == numAttr - 1) {
@@ -257,18 +281,22 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 
 
 	//Coordinates
+
+	/*
+		Checar se é "long"
+	*/
 	for (aux = 0; aux < numCoord; aux++) {
 		if (aux > 0) {
 			for (aux1 = 0; aux < numNodes; aux++) {
 				nodeCoords = GlobalModel.Coords.GetNodeCoordinates(aux1);
-				coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "double", numNodes);
+				coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "double", &defaultDimsf, rank, defaultSize);
 				writeDataset(coordDataset[aux], coordsVec, "double");
 				close(coordDataset[aux], "dataset");
 			}
 		}
 		else {
-			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "int", numNodes);
-			writeDataset(coordDataset[aux], indexVec, "int");
+			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "int", &defaultDimsf, rank, defaultSize);
+			writeDataset(coordDataset[aux], indexVec, "long");
 			close(coordDataset[aux], "dataset");
 		}
 	}
@@ -276,14 +304,14 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 	//For the actual values
 	for (aux = 0; aux < numNodes; aux++) {
 		if (aux == 0) {
-			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "int", numNodes);
-			writeDataset(coordDataset[aux], VECTOR, "int");
+			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "int", &defaultDimsf, rank, defaultSize);
+			writeDataset(coordDataset[aux], VECTOR, "long");
 			close(coordDataset[aux], "dataset");
 		}
 		else {
 			nodeCoords = GlobalModel.Coords.GetNodeCoordinates(aux);
-			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "double", numNodes);
-			writeDataset(coordDataset[aux], VECTOR, "int");
+			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "double", &defaultDimsf, rank, defaultSize);
+			writeDataset(coordDataset[aux], VECTOR, "long");
 		}
 	}
 
@@ -296,8 +324,8 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 	unsigned long int elemOrder, *incid, incidences[numElemNodes][numElems];
 	double *elemCoords;
 
-	std::vector<unsigned long int> indexVecElem;
-	std::vector<unsigned long int> indexVecElemOnes;
+	vector<unsigned long int> indexVecElem;
+	vector<unsigned long int> indexVecElemOnes;
 
 	for(int elem = 0; elem < numElems; aux++) {
 		elemOrder = GlobalModel.Groups[GroupNumber].GetMesh(SOLUTION).GetElementOrder(elem);
@@ -312,12 +340,21 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 
 	
 	elemDataset = (hid_t *) malloc(numElems * sizeof(hid_t));
+	hsize_t nodesPerElem = (unsigned long int) numNodes;
+	hsize_t dims2[2] = {numElems, 1};
+	hsize_t dims3[2] = {1, numElems};
+	int elemsSize = 2;
 
-
-	for (aux = 0; aux < numElems; aux++) {
-		elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1) + "/", "int", numIncidence);
-		writeDataset(elemDataset[aux], vectorIncidence, "int");
-		close(elemDataset[aux], "dataset");
+	//corrigir os datasets
+	for (unsigned long int aux = 0; aux < nodesPerElem + 2; aux++) {
+		if (aux + 1 == 1) {
+			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, 2, elemsSize);
+			writeDataset(elemDataset, indexVecElem.front(), "long");
+		}
+		else if (aux + 1 > 1 && aux < nodesPerElem + 2) {
+			elemDataset[aux] = newDataset(file, "Meshes/1/Elements/" + to_string(aux + 1), "long", &dims2, 2, elemsSize);
+			writeDataset(elemDataset, indexVecElem.front(), "long");
+		}
 	}
 
 	// /Results/
@@ -333,8 +370,8 @@ void printGidH5(string fileName, Vector Vector, unsigned long int numNodes, unsi
 				break;
 			}
 			else if (aux1 == 0) {
-				resDataset[aux1] = newDataset(file, "Results/" + to_string(aux + 1) + "/" + to_string(aux1 + 1)+ "/", "int", numNodes);
-				writeDataset(resDataset[aux1], vectorResultsIndex, "int");
+				resDataset[aux1] = newDataset(file, "Results/" + to_string(aux + 1) + "/" + to_string(aux1 + 1)+ "/", "long", numNodes);
+				writeDataset(resDataset[aux1], vectorResultsIndex, "long");
 				close(resDataset[aux1], "dataset");
 			}
 			else{
