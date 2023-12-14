@@ -3,9 +3,7 @@
 #include <stdlib.h>
 #include "hdf5.h"
 #include <cstring>
-#include <cstring>
 #include <iostream>
-#include "testdata.hpp"
 
 using namespace std;
 
@@ -28,41 +26,58 @@ hid_t newDataset(hid_t file, string target, string type, int size) {
 	
 	dataspace = H5Screate_simple(RANK, dimsf, NULL);
 	//creates a dataspace (dataset shape)
-	if (type == "int") {
-		datatype = H5Tcopy(H5T_NATIVE_INT);
-	}
-	else if (type == "double") {
-		datatype = H5Tcopy(H5T_NATIVE_DOUBLE);
-	}
-	else {
-		printf("newDataset: ERROR: only int and double are supported!\n");
-	}
-	status = H5Tset_order(datatype, H5T_ORDER_LE);
-	dataset = H5Dcreate(file, (target).c_str(), datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	try {
+		if (type == "int") {
+			datatype = H5Tcopy(H5T_NATIVE_INT);
+		}
+		else if (type == "double") {
+			datatype = H5Tcopy(H5T_NATIVE_DOUBLE);
+		}
+		else if (type == "long") {
+			datatype = H5Tcopy(H5T_NATIVE_ULONG);
+		}
+		status = H5Tset_order(datatype, H5T_ORDER_LE);
+		dataset = H5Dcreate(file, (target).c_str(), datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
-	return dataset;
+		return dataset;
+	}
+	catch (...) {
+		cout << "ERROR: only Int, Double and Long Int types are supported." << endl;
+	}
+
 }
 
-void writeDataset(hid_t dataset, struct array d, string type) {
+void writeDataset(hid_t dataset, vector array, string type) {
 	herr_t status;
-	if (type == "int") {
-		status = H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, d . arrayInt);
+	try {
+		if (type == "int") {
+			status = H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, d . arrayInt);
+		}
+		else if (type == "double") {
+			status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, d . arrayDouble);
+		}
+		else if (type == "long") {
+			status = H5Dwrite(dataset, H5T_NATIVE_ULONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, )
+		}	
 	}
-	else if (type == "double") {
-		status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, d . arrayDouble);
-	}
-	else {
-		printf("writeDataset: ERROR: only int and double are supported!\n");
+	catch (...) {
+		cout << "ERROR: only Int, Double and Long Int types are supported." << endl;
 	}
 }
 
 //Creates the basic file structure
 hid_t newFile(string fileName) {
 	hid_t file;
+	try {
+    	file = H5Fcreate((fileName).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		return file;
+	}
+	catch {
+		cout << "Failed to create file." << endl;
+	}
+ 
 
-    file = H5Fcreate((fileName).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT); 
 
-	return file;
 }
 
 
@@ -90,31 +105,33 @@ void newAttribute(hid_t target, string attrName, string attrValue, int size) {
 
 void close(hid_t target, string type) {
 	herr_t status;
-	if (type == "dataspace") {
-		status = H5Sclose(target);
-	}
+	try {
+		if (type == "dataspace") {
+			status = H5Sclose(target);
+		}
 
-	else if(type == "datatype") {
-		status = H5Tclose(target);
-	}
+		else if(type == "datatype") {
+			status = H5Tclose(target);
+		}
 
-	else if(type == "file") {
-		status = H5Fclose(target);		
+		else if(type == "file") {
+			status = H5Fclose(target);		
+		}
+		else if(type == "group") {
+			status = H5Gclose(target);		
+		}
+		else if(type == "dataset") {
+			status = H5Dclose(target);
+		}
+	} 
+	catch (...) {
+		cout << "Closing unsuccessful." << endl;
 	}
-	else if(type == "group") {
-		status = H5Gclose(target);		
-	}
-	else if(type == "dataset") {
-		status = H5Dclose(target);
-	}
- 
-	else {
-		printf("Closing of the " + type + " unsuccessful.");
-	}
+	
 }
 
 
-void printGidH5(string fileName, struct Vector, int numNodes) {
+void printGidH5(string fileName, vector vector, int numNodes) {
 	//
 	int aux, aux1, auxN = 0, numAttr = 10, numGroups = 18;
     hid_t file = newFile(fileName);
@@ -181,13 +198,13 @@ void printGidH5(string fileName, struct Vector, int numNodes) {
 		if (aux > 0) {
 			initDatasets(&testArr,"Meshes/1/Coordinates/" + to_string(aux + 1) + "/");
 			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "double", 6);
-			writeDataset(coordDataset[aux], testArr, "double");
+			writeDataset(coordDataset[aux], vector, "double");
 			close(coordDataset[aux], "dataset");
 		}
 		else {
 			initDatasets(&testArr,"Meshes/1/Coordinates/1/");
 			coordDataset[aux] = newDataset(file, "Meshes/1/Coordinates/" + to_string(aux + 1) + "/", "int", 6);
-			writeDataset(coordDataset[aux], testArr, "int");
+			writeDataset(coordDataset[aux], vector, "int");
 			close(coordDataset[aux], "dataset");
 		}
 	}

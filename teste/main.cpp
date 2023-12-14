@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include "printH5.hpp"
 #include <iostream>
+#include ""
 
 using namespace std;
 
 int main() {
-    printGidH5("DamageTest.h5", Vector vector, GlobalModel.eqs.getTotalNumberDOFs() / GlobalModal.getDimensions(), SolvParam.nts());
+    printGidH5("GidTeste.h5", vector Vector, GlobalModel.Coords.GetNumberNodes(), SolvParam.nts())
 }
