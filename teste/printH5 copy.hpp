@@ -130,25 +130,78 @@ void close(hid_t target, string type) {
 	
 }
 
-vector <double> * getCoordsFromFile(unsigned long int numNodes, const char *FEM_LOC) {
+int getNodesFromFile(const char *FEM_LOC) {
 	FILE *fem = fopen(FEM_LOC, "r");
+	int nodes;
 	char start[] = "*COORDINATES";
-	vector <double> coordinates;
-	char line[256];
-	int found;
+	char empty[] = "";
+	int found = 0;
+
 	if (fem == NULL) {
-		cout << ".fem file is empty!" << endl;
-	}
-	while (fgets(line, sizeof(line), file) != NULL) {
-		if (strstr(line, start)) {
-			found++
-		}
-		if (found) {
-
-		}
+		cout << ".fem file is empty!" << endl;	
+		return nodes;	
 	}
 
+	fseek(fem, 0, SEEK_END);
+    long size = ftell(fem);
+    fseek(fem, 0, SEEK_SET);
+    char *buffer = (char *)malloc(sizeof(char) * (size + 1));
 
+    if (buffer == NULL) {
+        perror("Memory allocation error");
+        fclose(fem);
+        return coords; 
+    }
+    fread(buffer, 1, size, fem);
+    buffer[size] = '\0'; 
+    fclose(fem);
+	char *token = strtok(buffer, " ");
+	token = strtok(NULL, " ");
+	nodes = strtoi(token, " ");
+	free(buffer);
+
+	return nodes;
+}
+
+
+
+vector<double> getCoordsFromFile(unsigned long int numNodes, const char *FEM_LOC) {
+    FILE *fem = fopen(FEM_LOC, "r");
+    vector<double> coords;
+    char start[] = "*COORDINATES";
+	char empty[] = ""
+    int found = 0; 
+
+    if (fem == NULL) {
+        cout << ".fem file is empty!" << endl;
+        return coords; 
+    }
+    fseek(fem, 0, SEEK_END);
+    long size = ftell(fem);
+    fseek(fem, 0, SEEK_SET);
+    char *buffer = (char *)malloc(sizeof(char) * (size + 1));
+
+    if (buffer == NULL) {
+        perror("Memory allocation error");
+        fclose(fem);
+        return coords; 
+    }
+    fread(buffer, 1, size, fem);
+    buffer[size] = '\0'; 
+    fclose(fem);
+    char *token = strtok(buffer, " ");
+    while (token != NULL) {
+        if (strcmp(token, start) == 0) {
+            found = 1;
+        }
+        if (found && strcmp(token, empty) != 0) {
+            double coordValue = strtod(token, NULL);
+            coords.push_back(coordValue);
+        }
+        token = strtok(NULL, " ");
+    }
+    free(buffer); 
+    return coords;
 }
 
 void printGidH5(string fileName, vector vector, int numNodes) {
