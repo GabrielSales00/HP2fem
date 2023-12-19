@@ -130,6 +130,26 @@ void close(hid_t target, string type) {
 	
 }
 
+vector <double> * getCoordsFromFile(unsigned long int numNodes, const char *FEM_LOC) {
+	FILE *fem = fopen(FEM_LOC, "r");
+	char start[] = "*COORDINATES";
+	vector <double> coordinates;
+	char line[256];
+	int found;
+	if (fem == NULL) {
+		cout << ".fem file is empty!" << endl;
+	}
+	while (fgets(line, sizeof(line), file) != NULL) {
+		if (strstr(line, start)) {
+			found++
+		}
+		if (found) {
+
+		}
+	}
+
+
+}
 
 void printGidH5(string fileName, vector vector, int numNodes) {
 	//
