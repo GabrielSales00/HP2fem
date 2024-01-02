@@ -130,6 +130,50 @@ void close(hid_t target, string type) {
 	
 }
 
+vector <int> getIncidencesFromFile(const char *FEM_LOC) {
+	FILE *fem = fopen(FEM_LOC, "r");
+	vector <int> incidences;
+	char start[] = "*COORDINATES";
+	char empty[] = "";
+	int found = 0;
+
+	if (fem == NULL) {
+		cout << ".fem file is empty!" << endl;
+		fclose(fem);
+		return incidences;
+	}
+
+	fseek(fem, 0, SEEK_END);
+	long size = ftell(fem);
+	fseek(fem, 0, SEEK_SET);
+	char *buffer = (char *) malloc(sizeof(char) * (size + 1));
+
+	if (buffer == NULL) {
+		perror("Memory allocation error");
+        fclose(fem);
+		return incidences;
+	}
+ 	fread(buffer, 1, size, fem);
+    buffer[size] = '\0'; 
+    fclose(fem);
+    char *token = strtok(buffer, " ");
+    while (token != NULL) {
+        if (strcmp(token, start) == 0) {
+            found = 1;
+        }
+        if (found && strcmp(token, empty) != 0) {
+            char *endptr = NULL; // Initialize endptr
+            int incidValue = strtol(token, &endptr, 10);
+            if (endptr != token && *endptr == '\0') {
+                incidences.push_back(incidValue);
+            }
+        }
+        token = strtok(NULL, " ");
+    }
+    free(buffer); 
+    return incidences;
+}
+
 int getNodesFromFile(const char *FEM_LOC) {
 	FILE *fem = fopen(FEM_LOC, "r");
 	int nodes;
@@ -139,6 +183,7 @@ int getNodesFromFile(const char *FEM_LOC) {
 
 	if (fem == NULL) {
 		cout << ".fem file is empty!" << endl;	
+		fclose(fem);
 		return nodes;	
 	}
 
@@ -150,7 +195,7 @@ int getNodesFromFile(const char *FEM_LOC) {
     if (buffer == NULL) {
         perror("Memory allocation error");
         fclose(fem);
-        return coords; 
+        return nodes; 
     }
     fread(buffer, 1, size, fem);
     buffer[size] = '\0'; 
@@ -174,6 +219,7 @@ vector<double> getCoordsFromFile(unsigned long int numNodes, const char *FEM_LOC
 
     if (fem == NULL) {
         cout << ".fem file is empty!" << endl;
+        fclose(fem);
         return coords; 
     }
     fseek(fem, 0, SEEK_END);
